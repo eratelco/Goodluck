@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GOOD LUCK CARS - v43.0</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+	<style>
+        :root { 
+            --primary: #4f46e5;
+            --dark: #111827;
+            --light: #f9fafb;
+            --danger: #ef4444;
+            --info: #06b6d4;
+        }
+        body { font-family: 'Segoe UI', sans-serif; font-size: 11px; margin: 0; background: var(--light); color: #333; padding-bottom: 40px; }       
+ 
+        /* --- HEADER & NAVIGATION --- */
+        .top-bar { 
+            background: #111827; 
+            padding: 10px 25px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            gap: 20px; 
+            border-bottom: 3px solid var(--primary); 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1001;
+        }
+
+        .brand-logo { 
+            font-size: 20px; 
+            font-weight: 800; 
+            color: #ffffff;
+            letter-spacing: 1px; 
+            text-transform: uppercase; 
+            background: linear-gradient(90deg, #ffffff, #9ca3af);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent; 
+            white-space: nowrap; 
+            display: flex; 
+            align-items: center; 
+            gap: 8px;
+        }
+        .brand-logo span { color: var(--primary); -webkit-text-fill-color: var(--primary); }
+
+        .global-search { 
+            flex: 1; 
+            max-width: 450px; 
+            padding: 10px 18px; 
+            border-radius: 8px; 
+            border: 1px solid #374151; 
+            background: #1f2937; 
+            color: white; 
+            font-size: 13px; 
+            outline: none; 
+            transition: all 0.3s ease;
+        }
+        .global-search:focus { 
+            border-color: var(--primary); 
+            background: #111827; 
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.4); 
+        }
+
+        .backup-status-box { font-size: 11px; padding: 4px 10px; border-radius: 4px; white-space: nowrap; }
+        .status-pending { background: #b91c1c; color: white; animation: blink 1.5s infinite; }
+        .status-ok { background: var(--primary); color: white; }
+        @keyframes blink { 0% {opacity: 1;} 50% {opacity: 0.6;} 100% {opacity: 1;} }
+        
+        .tabs-container { display: flex; justify-content: center; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); position: sticky; top: 53px; z-index: 999; }
+        .tab-btn { padding: 15px 25px; font-size: 13px; transition: all 0.3s ease; border:none; background:none; cursor:pointer; border-bottom: 3px solid transparent; }
+        .tab-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); font-weight:900; }
+        
+        .tab-content { display: none; padding: 20px; width: 100%; box-sizing: border-box; }
+        .tab-content.active { display: block; }
+        .box { background: white; padding: 15px; border-radius: 12px; border: 1px solid #e5e7eb; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .dash-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 20px; }
+        .dash-card { padding: 16px; border-radius: 12px; color: white; font-weight: 900; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s; }
+        .dash-card:hover { transform: translateY(-3px); }
+        .dash-card b { font-size: 18px; display: block; margin-top: 8px; }
+        
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
+        th, td { border: 1px solid #dee2e6; padding: 10px; text-align: left; }
+        th { background: #1f2937; color: white; position: sticky; top: 0; }
+        .amt { text-align: right; font-weight: 900; font-family: monospace; font-size: 12px; }
+        .main-btn { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 900; transition: 0.2s; }
+        .main-btn:hover { opacity: 0.9; transform: scale(1.02); }
+        .signal-btn { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #ccc; cursor: pointer; display: inline-block; }
+        .signal-green { background: #22c55e; box-shadow: 0 0 8px #22c55e; }
+        .signal-red { background: #ef4444; box-shadow: 0 0 8px #ef4444; }
+        input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; outline: none; }
+        input:focus { border-color: var(--primary); }
+        .summary-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #eee; cursor: pointer; align-items: center; }
+        .summary-row:hover { background: #f8fafc; }
+
+        .blink-text { animation: blinker 1.5s linear infinite; font-weight: 800 !important; }
+        @keyframes blinker { 50% { opacity: 0.3; } }
+        .brand-logo span { animation: blinker_logo 1.5s linear infinite; }
+        @keyframes blinker_logo { 50% { opacity: 0.1; } }
+	
+	.in-stock-row {
+    		background: #fff8c4 !important;
+    		border-left: 6px solid #f59e0b;
+    		animation: stockBlink 1.5s infinite;}
+
+	@keyframes stockBlink {
+    		0% { background: #fff8c4; }
+    		50% { background: #ffe066; }
+    		100% { background: #fff8c4; }}
+
+	</style>
+</head>
+<body>
+
+<div class="top-bar">
+    <div style="display: flex; align-items: center; gap: 8px;">
+        <div class="brand-logo">GOOD LUCK <span>CARS (New)</span></div>
+        <div style="font-size: 20px;">🏎️</div>
+    </div>
+    <div style="flex: 1; max-width: 300px; position: relative;">
+        <input type="text" id="mainSearch" class="global-search" style="width: 100%;" placeholder="🔍 Search..." onkeyup="render()">
+        <span onclick="document.getElementById('mainSearch').value=''; render();" style="position: absolute; right: 15px; top: 10px; color: #9ca3af; cursor: pointer; font-weight: 900;">✕</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <div id="backup-status" class="backup-status-box status-pending">⚠️ Backup Pending!</div>
+        <div id="selection-tools" style="display: none; gap: 5px;">
+            <button onclick="triggerEdit()" style="background:var(--info); color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer;">✏️</button>
+            <button onclick="triggerDelete()" style="background:var(--danger); color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer;">🗑️</button>
+	</div>
+        <button class="main-btn" style="background:#374151; padding: 8px 15px;" onclick="document.getElementById('restoreFile').click()">📂</button>
+        <button class="main-btn" onclick="downloadBackup()">💾 SAVE</button>
+        <button class="main-btn" style="background:#10b981; padding: 7px 12px; font-size: 11px; height: 35px;" onclick="document.getElementById('mergeFile').click()">🚀 MERGE</button>	
+        <input type="file" id="mergeFile" style="display:none" onchange="mergeData(event)">
+        <input type="file" id="restoreFile" style="display:none" onchange="restoreBackup(event)">
+    </div>
+</div>
+
+<div class="tabs-container">
+    <button class="tab-btn active" onclick="openTab(event, 'dash')">Dashboard</button>
+    <button class="tab-btn" onclick="openTab(event, 'stock')">Car Stock</button>
+    <button class="tab-btn" onclick="openTab(event, 'entries')">Entries</button>
+    <button class="tab-btn" onclick="openTab(event, 'accounts')">Accounts</button>
+    <button class="tab-btn" onclick="openTab(event, 'reports')">Reports</button>
+</div>
+
+<div id="dash" class="tab-content active">
+    <div class="dash-grid">
+        <div class="dash-card" style="background:#0ea5e9;"><small>Available Cash</small><b id="d-cash">0</b></div>
+        <div class="dash-card" style="background:#10b981;"><small>Stock Value</small><b id="d-stock">0</b></div>
+        <div class="dash-card" style="background:#f59e0b;"><small>Net Market</small><b id="d-market">0</b></div>
+        <div class="dash-card" style="background:#111827;"><small>Net Worth</small><b id="d-networth" style="color:#10b981">0</b></div>
+	<div class="dash-card" style="background:#dc2626;"><small>Net Profit</small><b id="d-profit">0</b></div>
+    </div>
+    <div style="display:grid; grid-template-columns: 1.4fr 1.1fr; gap:20px;">
+        <div class="box">
+            <h3>🤝 Active Parties Balances</h3>
+            <div id="active-parties-list"></div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; border-top: 3px solid #111827; padding-top: 10px;">
+                <div style="font-size: 15px; color: green; font-weight:900;">TOTAL LENA: <span id="total-lena">0</span></div>
+                <div style="font-size: 15px; color: #ef4444; font-weight:900;">TOTAL DENA: <span id="total-dena">0</span></div>
+            </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+            <div class="box">
+                <h3 style="margin-top:0;">📊 Financial Summary</h3>
+                <div id="summary-content"></div>
+            </div>
+            <div class="box">
+                <h3 style="margin-top:0;">🏦 Cash & Bank Accounts</h3>
+                <div id="active-cash-list"></div>
+                <div style="margin-top: 15px; border-top: 3px solid #111827; padding-top: 10px;">
+                    <div style="font-size: 15px; font-weight:900; color: green;">TOTAL CASH/BANK: <span id="dash-total-cash">0</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="stock" class="tab-content">
+    <div class="box">
+        <input type="hidden" id="editStockIdx" value="-1">
+        <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px;">
+            <input type="date" id="sPurDate">
+            <input type="text" id="sName" placeholder="Vehicle Name">
+            <input type="text" id="sPurPrice" placeholder="Pur Price" oninput="formatInput(this)">
+            <select id="sSeller"></select>
+            <input type="date" id="sSaleDate">
+            <input type="text" id="sSalePrice" placeholder="Sale Price" oninput="formatInput(this)">
+            <select id="sBuyer"></select>
+        </div>
+        <button class="main-btn" style="width:100%; margin-top:10px;" onclick="saveStock()">SAVE VEHICLE</button>
+    </div>
+    <div class="box" style="overflow-x:auto;">
+        <table>
+            <thead>
+                <tr><th>Pur Date</th><th>Vehicle</th><th>Cost</th><th>Seller</th><th>Sale Date</th><th>Price</th><th>Buyer</th><th class="amt">Profit</th></tr>
+            </thead>
+            <tbody id="stockBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<div id="entries" class="tab-content">
+    <div class="box">
+        <input type="hidden" id="editEntryIdx" value="-1">
+        <div style="display:flex; gap:10px;">
+            <input type="date" id="rDate">
+            <input type="text" id="rDetail" placeholder="Detail" list="allDetails" style="flex:2">
+            <datalist id="allDetails"></datalist>
+            <select id="rFrom"></select><select id="rTo"></select>
+            <input type="text" id="rAmount" placeholder="Amount" oninput="formatInput(this)">
+            <button class="main-btn" onclick="saveEntry()">SAVE ENTRY</button>
+        </div>
+    </div>
+    <div class="box">
+        <table>
+            <thead><tr><th>Date</th><th>Detail</th><th>From</th><th>To</th><th class="amt">Amount</th></tr></thead>
+            <tbody id="entryBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<div id="accounts" class="tab-content">
+    <div class="box">
+        <input type="hidden" id="editAccIdx" value="-1">
+        <div style="display:flex; gap:10px; align-items:center;">
+            <input type="text" id="aName" placeholder="Account Name" style="flex:2">
+            <select id="aType"><option value="Cash/Bank">Cash/Bank</option><option value="Party">Party</option><option value="Expense">Expense</option></select>
+            <input type="text" id="aBal" placeholder="Opening" oninput="formatInput(this)">
+            <div id="signalToggle" class="signal-btn signal-green" onclick="toggleSignal()"></div>
+            <button class="main-btn" onclick="saveAccount()">SAVE ACCOUNT</button>
+        </div>
+    </div>
+    <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:15px;">
+        <div class="box"><h4>CASH/BANK</h4><div id="l-cash"></div></div>
+        <div class="box"><h4>PARTIES</h4><div id="l-party"></div></div>
+        <div class="box"><h4>EXPENSES</h4><div id="l-exp"></div></div>
+    </div>
+</div>
+
+<div id="reports" class="tab-content">
+
+<div style="display:flex; gap:10px; margin-bottom:15px;">
+
+    <button class="main-btn"
+    onclick="showReport('ledger')">
+    📖 LEDGER
+    </button>
+
+    <button class="main-btn"
+    onclick="showReport('pl')">
+    📈 PROFIT & LOSS
+    </button>
+
+</div>
+
+    <div class="box" id="ledgerBox">
+    	<h3>📖 Account Ledger</h3>
+        <div style="display:grid; grid-template-columns: 2fr 1fr 1fr 0.5fr; gap:10px;">
+            <select id="repAccount" onchange="generateLedger()"></select>
+            <input type="date" id="repFromDate" onchange="generateLedger()">
+            <input type="date" id="repToDate" onchange="generateLedger()">
+            <button class="main-btn" style="background:#6366f1;" onclick="downloadPDFReport()">PDF</button>
+        </div>
+        <div id="ledgerArea" style="margin-top:20px; background:white; border:1px solid #eee;">
+            <div id="ledgerHeader" style="text-align:center; display:none;">
+                <h2 id="ledgerTitle"></h2>
+                <p id="ledgerDateRange"></p><hr>
+            </div>
+            <table>
+                <thead><tr><th>Date</th><th>Description</th><th class="amt">Debit (-)</th><th class="amt">Credit (+)</th><th class="amt">Balance</th></tr></thead>
+                <tbody id="ledgerBody"></tbody>
+            </table>
+        </div>
+    </div>
+	<div class="box" id="profitLossBox" style="display:none;">
+    		<h3>📈 Profit & Loss Report</h3>
+
+	    <div style="display:flex; gap:10px; margin-bottom:15px;">
+        	<input type="date" id="plFromDate">
+        	<input type="date" id="plToDate">
+
+        <button class="main-btn"
+        onclick="generatePLReport()">
+        GENERATE REPORT
+        </button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Purchase</th>
+                <th>Sales/Expense</th>
+                <th>Profit/Loss</th>
+            </tr>
+        </thead>
+
+        <tbody id="plBody"></tbody>
+
+        <tfoot>
+            <tr style="background:#111827; color:white; font-weight:900;">
+                <td colspan="2">TOTAL</td>
+                <td id="plIncome">0</td>
+                <td id="plExpense">0</td>
+                <td id="plNet">0</td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+
+</div>
+
+<script>
+
+    let db = { stock: [], entries: [], accounts: [] };
+    let sel = { type: null, idx: -1 };
+    let currentSignal = true;
+    const STORAGE_KEY = 'glc_data_file_ONE';
+
+    window.onload = () => { 
+        let saved = localStorage.getItem(STORAGE_KEY); 
+        if(saved) db = JSON.parse(saved); 
+        render(); 
+	showReport('pl');
+    };
+
+    // --- 2. SMART SUGGESTIONS FUNCTION ---
+    function updateSuggestions() {
+        let details = [...new Set(db.entries.map(e => e.detail))];
+        let listHtml = "";
+        details.sort().forEach(d => {
+            if(d) listHtml += `<option value="${d}">`;
+        });
+        document.getElementById('allDetails').innerHTML = listHtml;
+    }
+
+    function toggleSignal() { 
+        currentSignal = !currentSignal; 
+        document.getElementById('signalToggle').className = currentSignal ? 'signal-btn signal-green' : 'signal-btn signal-red'; 
+    }
+
+    function fDate(dStr) {
+        if(!dStr) return '-';
+        let d = new Date(dStr);
+        if(isNaN(d)) return dStr;
+        let day = String(d.getDate()).padStart(2, '0');
+        let month = String(d.getMonth() + 1).padStart(2, '0');
+        let year = String(d.getFullYear()).slice(-2);
+        return `${day}-${month}-${year}`;
+    }
+
+    function isMatch(obj, key) {
+        if (!key) return true;
+        let searchTerms = key.toLowerCase().split(' ');
+        let dateValues = [];
+        if(obj.date) dateValues.push(fDate(obj.date));
+        if(obj.purDate) dateValues.push(fDate(obj.purDate));
+        if(obj.saleDate) dateValues.push(fDate(obj.saleDate));
+        let mainStr = Object.values(obj).map(v => String(v).toLowerCase()).join(' ') + ' ' + dateValues.join(' ');
+        let cleanStr = mainStr.replace(/,/g, ''); 
+        return searchTerms.every(term => {
+            let cleanTerm = term.replace(/,/g, '');
+            return mainStr.includes(term) || cleanStr.includes(cleanTerm);
+        });
+    }
+
+    // --- 3. MAIN RENDER FUNCTION (CLEANED) ---
+    function render() {
+        db.entries.sort((a, b) => new Date(a.date) - new Date(b.date));
+        db.stock.sort((a, b) => new Date(a.purDate) - new Date(b.purDate));
+        
+        updateSuggestions(); // Update detail list
+
+        let gKey = document.getElementById('mainSearch').value;
+
+        // Populate Select Boxes
+        let opt = '<option value="">-- Select Account --</option>'; 
+        db.accounts.sort((a,b)=>a.name.localeCompare(b.name)).forEach(a => opt += `<option value="${a.name}">${a.name}</option>`);
+        ['sSeller','sBuyer','rFrom','rTo','repAccount'].forEach(id => { 
+            if(document.getElementById(id)) document.getElementById(id).innerHTML = opt; 
+        });
+
+        let cash=0, lena=0, dena=0, stkVal=0, totalSales=0, totalPurchase=0, totalExpense=0, netProfit=0, activePList = '', activeCList = '';
+        let h = {'Cash/Bank':'', 'Party':'', 'Expense':''};
+
+        db.accounts.forEach((a, idx) => {
+            let b = Number(a.bal) || 0;
+            db.entries.forEach(e => { if(e.to===a.name) b+=Number(e.amt); if(e.from===a.name) b-=Number(e.amt); });
+            db.stock.forEach(s => { if(s.buyer===a.name) b+=Number(s.salePrice); if(s.seller===a.name) b-=Number(s.purPrice); });
+            
+            if(a.type==='Cash/Bank') {
+                cash += b;
+                activeCList += `<div class="summary-row" onclick="selectRow('acc',${idx},this)"><span>${a.name}</span><b style="color:${b < 0 ? 'red' : 'green'}">${fNum(b)}</b></div>`;
+            }
+            if(a.type==='Party') { 
+                if(b > 0) lena += b; if(b < 0) dena += Math.abs(b); 
+                if(b !== 0) activePList += `<div class="summary-row" onclick="selectRow('acc',${idx},this)"><span>${a.name}</span><b style="color:${b>0?'green':'red'}">${fNum(b)}</b></div>`;
+            }
+	    if(a.type==='Expense') {
+    		totalExpense += Math.abs(b);
+}
+            if(isMatch(a, gKey)) h[a.type] += `<div class="summary-row" style="padding:8px; align-items:center;" onclick="selectRow('acc',${idx},this)"><span style="display:flex; align-items:center; gap:8px;">${a.status===false?'🔴':'🟢'} ${a.name}</span><b style="color:${b < 0 ? 'red' : 'black'}">${fNum(b)}</b></div>`;
+        });
+
+        db.stock.forEach(s => {
+
+    if(s.buyer && s. salePrice) {
+        totalSales += Number(s.salePrice);
+        totalPurchase += Number(s.purPrice);
+    }
+});
+	netProfit = totalSales - totalPurchase - totalExpense;
+        document.getElementById('d-cash').innerText = fNum(cash);
+        document.getElementById('d-stock').innerText = fNum(stkVal);
+        document.getElementById('d-market').innerText = fNum(lena-dena);
+        document.getElementById('d-networth').innerText = fNum(cash + stkVal + (lena-dena));
+	
+	if(document.getElementById('d-profit')) {
+    	document.getElementById('d-profit').innerText = fNum(netProfit);
+}
+        document.getElementById('total-lena').innerText = fNum(lena);
+        document.getElementById('total-dena').innerText = fNum(dena);
+        document.getElementById('dash-total-cash').innerText = fNum(cash);
+        document.getElementById('active-parties-list').innerHTML = activePList || 'No balances';
+        document.getElementById('active-cash-list').innerHTML = activeCList || 'No cash accounts';
+
+        let businessValue = (cash + stkVal + (lena - dena));
+        document.getElementById('summary-content').innerHTML = `
+            <div class="summary-row"><span>Cash/Bank:</span> <b style="color:${cash < 0 ? 'red' : 'green'}">${fNum(cash)}</b></div>
+            <div class="summary-row"><span>Unsold Stock:</span> <b style="color: green;">${fNum(stkVal)}</b></div>
+            <div class="summary-row"><span>Total Lena:</span> <b style="color:green;">${fNum(lena)}</b></div>
+            <div class="summary-row" style="margin-bottom:15px;"><span>Total Dena:</span> <b style="color:red;">${fNum(dena)}</b></div>
+            <div style="font-size: 28px; font-weight: 800; color: ${businessValue < 0 ? 'red' : '#28a745'};">${fNum(businessValue)}</div>`;
+
+        ['l-cash','l-party','l-exp'].forEach(id => { 
+            let type = id==='l-cash' ? 'Cash/Bank' : (id==='l-party' ? 'Party' : 'Expense'); 
+            document.getElementById(id).innerHTML = h[type]; 
+        });
+        
+        let entryRows = "";
+        [...db.entries].reverse().forEach((e) => {
+            let i = db.entries.indexOf(e);
+            if(isMatch(e, gKey)) { 
+                entryRows += `<tr onclick="selectRow('entry',${i},this)">
+                    <td style="color: purple; font-weight: 900">${fDate(e.date)}</td>
+                    <td style="font-weight: 900;">${e.detail}</td>
+                    <td style="font-weight: 900; color: #b91c1c;">${e.from}</td>
+                    <td style="font-weight: 900; color: #10b981;">${e.to}</td>
+                    <td class="amt" style="color: var(--primary); font-weight: 800; font-size: 13px;">${fNum(e.amt)}</td>
+                </tr>`;
+            }
+        });
+        document.getElementById('entryBody').innerHTML = entryRows;
+
+        let stockRows = "";
+        [...db.stock].reverse().forEach((s) => {
+            let i = db.stock.indexOf(s);
+            if(isMatch(s, gKey)) {
+                let prof = s.buyer ? (Number(s.salePrice || 0) - Number(s.purPrice || 0)) : 0;
+                let isAvailable = !s.buyer || s.buyer === ""; 
+                let blinkClass = isAvailable ? "blink-text" : "";
+                let rowStyle = isAvailable
+		 ? "background: #fff8c4; border-left;6px solid #f59e0b;" : "background: White;";
+                
+		stockRows += `<tr onclick="selectRow('stock',${i},this)" style="${rowStyle}">
+                    <td style="color: purple; font-weight: 900">${fDate(s.purDate)}</td>
+                    <td style="color: green; font-weight: 900;">${s.name}</td>
+                    <td class="amt ${blinkClass}" style="color:var(--primary); font-weight: 900;">${fNum(s.purPrice)}</td>
+                    <td style="color: #b91c1c; font-weight: 900;">${s.seller || '-'}</td>
+                    <td style="color: purple; font-weight: 900">${fDate(s.saleDate)}</td>
+                    <td class="amt" style="color:var(--primary); font-weight: 900;">${s.salePrice ? fNum(s.salePrice) : '-'}</td>
+                    <td style="color: #b91c1c; font-weight: 900;">${s.buyer || 'IN STOCK'}</td>
+                    <td class="amt" style="font-weight: 800; color:${prof>=0?'green':'red'}">${s.buyer ? fNum(prof) : '-'}</td>
+                </tr>`;
+            }
+        });
+        document.getElementById('stockBody').innerHTML = stockRows;
+        checkStorage();
+    }
+
+    function checkStorage() {
+        let used = JSON.stringify(db).length; 
+        let limit = 5 * 1024 * 1024; 
+        let percent = ((used / limit) * 100).toFixed(1);
+        let statusBox = document.getElementById('backup-status');
+        if (statusBox) {
+            statusBox.innerText = "Storage: " + percent + "% | Backup Pending!";
+            if (percent > 80) { statusBox.style.background = "#eab308"; statusBox.style.color = "black"; }
+            if (percent > 95) { statusBox.style.background = "#dc2626"; }
+        }
+    }
+
+    function pNum(s) { return Number(String(s).replace(/,/g,'')) || 0; }
+    function fNum(n) { 
+        let num = Number(n) || 0;
+        return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); 
+    }
+    function formatInput(el) { 
+        let v = el.value.replace(/,/g,''); 
+        if(!isNaN(v) && v !== "" && !v.endsWith('.')) { 
+            el.value = Number(v).toLocaleString(undefined, { maximumFractionDigits: 2 }); 
+        } 
+    }
+    function sync() { 
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); 
+        document.getElementById('backup-status').className='backup-status-box status-pending'; 
+        render(); 
+    }
+    
+    function selectRow(t, i, el) { 
+        document.querySelectorAll('tr, .summary-row').forEach(r => r.style.background=''); 
+        el.style.background='#dbeafe'; 
+        sel={type:t, idx:i}; 
+        document.getElementById('selection-tools').style.display='flex';
+        document.getElementById('mainSearch').value = "";
+    }
+    function triggerDelete() { if(confirm("Delete Selected?")) { db[sel.type==='acc'?'accounts':sel.type==='stock'?'stock':'entries'].splice(sel.idx, 1); sync(); } }
+    
+    function triggerEdit() {
+        let i = sel.idx;
+        if(sel.type==='acc') { 
+            let a = db.accounts[i]; 
+            document.getElementById('aName').value = a.name; 
+            document.getElementById('aType').value = a.type; 
+            document.getElementById('aBal').value = a.bal; 
+            currentSignal = a.status !== false; 
+            document.getElementById('editAccIdx').value = i; 
+            openTab(null, 'accounts'); 
+        }
+        else if(sel.type==='entry') { 
+            let e = db.entries[i]; 
+            document.getElementById('rDate').value = e.date; 
+            document.getElementById('rDetail').value = e.detail; 
+            document.getElementById('rFrom').value = e.from; 
+            document.getElementById('rTo').value = e.to; 
+            document.getElementById('rAmount').value = e.amt; 
+            document.getElementById('editEntryIdx').value = i; 
+            openTab(null, 'entries'); 
+        }
+        else if(sel.type==='stock') { 
+            let s = db.stock[i]; 
+            document.getElementById('sPurDate').value = s.purDate; 
+            document.getElementById('sName').value = s.name; 
+            document.getElementById('sPurPrice').value = s.purPrice; 
+            document.getElementById('sSeller').value = s.seller; 
+            document.getElementById('sSaleDate').value = s.saleDate; 
+            document.getElementById('sSalePrice').value = s.salePrice; 
+            document.getElementById('sBuyer').value = s.buyer; 
+            document.getElementById('editStockIdx').value = i; 
+            openTab(null, 'stock'); 
+        }
+    }
+    function openTab(e, n) { 
+        document.querySelectorAll('.tab-content').forEach(c=>c.style.display='none'); 
+        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); 
+        document.getElementById(n).style.display='block'; 
+        if(e) e.currentTarget.classList.add('active'); 
+        else document.querySelector(`button[onclick*="${n}"]`).classList.add('active'); 
+        sel={type:null, idx:-1}; 
+        document.getElementById('selection-tools').style.display='none'; 
+    }
+
+    function saveAccount() { 
+        let d = { name: document.getElementById('aName').value, type: document.getElementById('aType').value, bal: pNum(document.getElementById('aBal').value), status: currentSignal }; 
+        let i = parseInt(document.getElementById('editAccIdx').value); 
+        if(i===-1) db.accounts.push(d); else db.accounts[i]=d; 
+        document.getElementById('editAccIdx').value="-1"; 
+        sync(); 
+    }
+    
+    async function saveStock() { 
+        let editIdx = parseInt(document.getElementById('editStockIdx').value); 
+        let d = { 
+            purDate: document.getElementById('sPurDate').value, 
+            name: document.getElementById('sName').value, 
+            purPrice: pNum(document.getElementById('sPurPrice').value), 
+            seller: document.getElementById('sSeller').value, 
+            saleDate: document.getElementById('sSaleDate').value, 
+            salePrice: pNum(document.getElementById('sSalePrice').value), 
+            buyer: document.getElementById('sBuyer').value
+        }; 
+        if(!d.name) { alert("Please enter Vehicle Name!"); return; }
+        if(editIdx > -1) db.stock[editIdx] = d; else db.stock.push(d);
+        document.getElementById('editStockIdx').value = "-1"; 
+        document.querySelectorAll('#stock input').forEach(inp => inp.value = "");
+        document.querySelectorAll('#stock select').forEach(sel => sel.value = "");
+        sync(); 
+    }
+
+    function saveEntry() { 
+        let i = parseInt(document.getElementById('editEntryIdx').value); 
+        let d = { 
+            date: document.getElementById('rDate').value, 
+            detail: document.getElementById('rDetail').value, 
+            from: document.getElementById('rFrom').value, 
+            to: document.getElementById('rTo').value, 
+            amt: pNum(document.getElementById('rAmount').value) 
+        }; 
+        if(i === -1) db.entries.push(d); else db.entries[i] = d; 
+        document.getElementById('editEntryIdx').value = "-1"; 
+        sync(); 
+    }
+
+    function generateLedger() {
+        let name = document.getElementById('repAccount').value;
+        let fromDate = document.getElementById('repFromDate').value;
+        let toDate = document.getElementById('repToDate').value;
+        if(!name) return;
+        let acc = db.accounts.find(a => a.name === name);
+        let initialOpening = Number(acc.bal) || 0;
+        let allMoves = [];
+        db.entries.forEach(e => { 
+            if(e.from === name) allMoves.push({ d: e.date, t: e.detail, dr: e.amt, cr: 0 }); 
+            if(e.to === name) allMoves.push({ d: e.date, t: e.detail, dr: 0, cr: e.amt }); 
+        });
+        db.stock.forEach(s => { 
+            if(s.seller === name) allMoves.push({ d: s.purDate, t: "PUR: "+s.name, dr: s.purPrice, cr: 0 }); 
+            if(s.buyer === name) allMoves.push({ d: s.saleDate, t: "SALE: "+s.name, dr: 0, cr: s.salePrice }); 
+        });
+        allMoves.sort((a, b) => new Date(a.d) - new Date(b.d));
+        let carryForward = initialOpening;
+        let filteredMoves = [];
+        allMoves.forEach(m => { 
+            if(fromDate && m.d < fromDate) carryForward = carryForward - Number(m.dr) + Number(m.cr); 
+            else if ((!fromDate || m.d >= fromDate) && (!toDate || m.d <= toDate)) filteredMoves.push(m); 
+        });
+        document.getElementById('ledgerHeader').style.display = 'block';
+        document.getElementById('ledgerTitle').innerText = name.toUpperCase();
+        document.getElementById('ledgerDateRange').innerText = (fromDate ? fDate(fromDate) : "START") + " TO " + (toDate ? fDate(toDate) : "TODAY");
+        let running = carryForward;
+        let rows = `<tr style="background:#f8fafc; font-weight:900;"><td colspan="2">OPENING BALANCE B/F</td><td class="amt">-</td><td class="amt">-</td><td class="amt" style="color:${carryForward >= 0 ? '#16a34a' : '#dc2626'}">${fNum(carryForward)}</td></tr>`;
+        filteredMoves.forEach(m => { 
+            running = running - Number(m.dr) + Number(m.cr); 
+            let statusColor = running >= 0 ? '#16a34a' : '#dc2626'; 
+            rows += `<tr><td>${fDate(m.d)}</td><td>${m.t}</td><td class="amt" style="color:#dc2626">${m.dr ? fNum(m.dr) : '-'}</td><td class="amt" style="color:#16a34a">${m.cr ? fNum(m.cr) : '-'}</td><td class="amt" style="color:${statusColor}; font-weight:800;">${fNum(running)}</td></tr>`; 
+        });
+        document.getElementById('ledgerBody').innerHTML = rows;
+    }
+
+    async function downloadPDFReport() {
+        const name = document.getElementById('repAccount').value;
+        if(!name) return alert("Please select an account first!");
+        const ledgerArea = document.getElementById('ledgerArea');
+        const tableBody = document.getElementById('ledgerBody');
+        let totalDr = 0, totalCr = 0;
+        Array.from(tableBody.rows).forEach((row, index) => {
+            if (index === 0) return;
+            totalDr += pNum(row.cells[2].innerText);
+            totalCr += pNum(row.cells[3].innerText);
+        });
+        let finalBal = tableBody.lastElementChild.cells[4].innerText;
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = ledgerArea.innerHTML;
+        const table = tempDiv.querySelector('table');
+        if (table) {
+            const footer = document.createElement('tfoot');
+            footer.innerHTML = `<tr style="background-color: #111827 !important; color: white !important; font-weight: 900;"><td colspan="2" style="padding: 10px; text-align: right; border: 1px solid #000;">PERIOD TOTAL:</td><td style="padding: 10px; text-align: right; border: 1px solid #000; color: #ff9999 !important;">${fNum(totalDr)}</td><td style="padding: 10px; text-align: right; border: 1px solid #000; color: #99ff99 !important;">${fNum(totalCr)}</td><td style="padding: 10px; text-align: right; border: 1px solid #000; color: #fff !important;">NET BAL: ${finalBal}</td></tr>`;
+            table.appendChild(footer);
+        }
+        const opt = { margin: 10, filename: `Ledger ${name}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+        html2pdf().set(opt).from(tempDiv).save();
+    }
+    
+    function downloadBackup() { 
+        const now = new Date(); 
+        let a = document.createElement('a'); 
+        a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db)); 
+        a.download = `GLC NEW ${now.toLocaleDateString()}.json`; 
+        a.click(); 
+        document.getElementById('backup-status').className='backup-status-box status-ok'; 
+        document.getElementById('backup-status').innerText='✅ Backup Saved!'; 
+    }
+    
+    function restoreBackup(e) { let r=new FileReader(); r.onload=(x)=>{db=JSON.parse(x.target.result); sync();}; r.readAsText(e.target.files[0]); }
+    
+	function mergeData(e) {
+        let r = new FileReader();
+        r.onload = (x) => {
+            let historyDb = JSON.parse(x.target.result);
+            if(confirm("Merge history data?")) {
+                db.stock = [...db.stock, ...historyDb.stock];
+                db.entries = [...db.entries, ...historyDb.entries];
+                db.accounts.forEach(acc => {
+                    let hAcc = historyDb.accounts.find(ha => ha.name === acc.name);
+                    if(hAcc) acc.bal = Number(acc.bal) + Number(hAcc.bal);
+                });
+                sync();
+                alert("Data merged!");
+            }
+        };
+        r.readAsText(e.target.files[0]);
+    }
+
+function generatePLReport() {
+
+    let fromDate = document.getElementById('plFromDate').value;
+    let toDate = document.getElementById('plToDate').value;
+
+    let rows = "";
+
+    let totalPurchase = 0;
+    let totalSales = 0;
+    let totalExpense = 0;
+
+    // SOLD CARS
+    db.stock.forEach(s => {
+
+        if(!s.saleDate) return;
+
+        if(fromDate && s.saleDate < fromDate) return;
+        if(toDate && s.saleDate > toDate) return;
+
+        let purchase = Number(s.purPrice || 0);
+        let sale = Number(s.salePrice || 0);
+
+        let profit = sale - purchase;
+
+        // TOTALS
+        totalPurchase += purchase;
+        totalSales += sale;
+
+        rows += `
+        <tr>
+            <td>${fDate(s.saleDate)}</td>
+
+            <td>${s.name}</td>
+
+            <td class="amt" style="color:green;">
+                ${fNum(purchase)}
+            </td>
+
+            <td class="amt" style="color:red;">
+                ${fNum(sale)}
+            </td>
+
+            <td class="amt"
+            style="color:${profit >= 0 ? 'green' : 'red'}; font-weight:900;">
+                ${fNum(profit)}
+            </td>
+        </tr>
+        `;
+    });
+
+    // EXPENSES
+    db.accounts.forEach(acc => {
+
+        if(acc.type === 'Expense') {
+
+            db.entries.forEach(e => {
+
+                if(e.to === acc.name) {
+
+                    if(fromDate && e.date < fromDate) return;
+                    if(toDate && e.date > toDate) return;
+
+                    let expense = Number(e.amt || 0);
+
+                    totalExpense += expense;
+
+                    rows += `
+                    <tr style="background:#fff7f7;">
+                        <td>${fDate(e.date)}</td>
+
+                        <td>EXPENSE: ${e.detail}</td>
+
+                        <td class="amt">-</td>
+
+                        <td class="amt" style="color:red;">
+                            ${fNum(expense)}
+                        </td>
+
+                        <td class="amt"
+                        style="color:red; font-weight:900;">
+                            -${fNum(expense)}
+                        </td>
+                    </tr>
+                    `;
+                }
+            });
+        }
+    });
+
+    // NET PROFIT
+    let netProfit = totalSales - totalPurchase - totalExpense;
+
+    // SHOW TABLE
+    document.getElementById('plBody').innerHTML = rows;
+
+    // TOTALS
+    document.getElementById('plIncome').innerText =
+    fNum(totalPurchase);
+
+    document.getElementById('plExpense').innerText =
+    fNum(totalSales + totalExpense);
+
+    document.getElementById('plNet').innerText =
+    fNum(netProfit);
+}
+
+function showReport(type) {
+
+    document.getElementById('ledgerBox').style.display = 'none';
+    document.getElementById('profitLossBox').style.display = 'none';
+
+    if(type === 'ledger') {
+        document.getElementById('ledgerBox').style.display = 'block';
+    }
+
+    if(type === 'pl') {
+        document.getElementById('profitLossBox').style.display = 'block';
+    }
+}
+
+</script>
+</body>
+</html>
